@@ -1,6 +1,6 @@
 package code.kata.global.config.security.jwt;
 
-import code.kata.domain.user.constant.Provider;
+import code.kata.domain.oauth.constant.Provider;
 import code.kata.domain.user.domain.User;
 import code.kata.domain.user.repository.UserRepository;
 import code.kata.global.config.security.jwt.principal.Oauth2PrincipalDetails;
@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -60,6 +61,7 @@ public class JwtProvider implements InitializingBean {
     }
 
     public TokenInfoResponse createToken(Authentication authentication, Provider provider) {
+        log.info("토큰 발행 진입");
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));

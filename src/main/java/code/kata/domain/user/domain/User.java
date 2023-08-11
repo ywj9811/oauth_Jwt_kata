@@ -17,13 +17,9 @@ public class User {
     @Column(nullable = false)
     private String userId;
     @Column(nullable = false)
-    private String name;
-    @Column(nullable = false)
     private String nickName;
     @Column(nullable = false)
     private String provider;
-    @Column(nullable = false)
-    private String gender;
     @Column(nullable = false)
     private int status;
     // 회원 정상 / 휴면 / 탈퇴 상태
