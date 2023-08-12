@@ -6,6 +6,7 @@ import code.kata.domain.oauth.service.Oauth2Service;
 import code.kata.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.Disposable;
@@ -31,6 +32,6 @@ public class KakaoService implements Oauth2Service {
                 .onStatus((HttpStatus) -> HttpStatus.ACCEPTED.is5xxServerError(), response -> Mono.error(new ClassCastException()))
                 //적절한 예외 처리
                 .bodyToMono(KakaoResponse.class)
-                .map(oauthToUser::fromKakao);
+                .flatMap(oauthToUser::fromKakao);
     }
 }
