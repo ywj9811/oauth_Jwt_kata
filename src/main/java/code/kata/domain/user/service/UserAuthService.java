@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import javax.transaction.Transactional;
 
@@ -33,18 +34,25 @@ public class UserAuthService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
 
-    public SuccessResponse<TokenInfoResponse> signIn(String accessToken, String provider) {
+    public Mono<SuccessResponse<TokenInfoResponse>> signIn(String accessToken, String provider) {
         Oauth2Service oauth2Service = selectOauth2Service.selectService(Provider.valueOf(provider.toUpperCase()));
-        User userData = oauth2Service.getUserData(accessToken);
+        return oauth2Service.getUserData(accessToken)
+                .flatMap(user -> {
+                    User existingUser = userRepository.findByUserId(user.getUserId())
+                            .orElseGet(() -> signUp(user));
 
-        User user = userRepository.findByUserId(userData.getUserId())
-                .orElseGet(() -> signUp(userData));
-
-        log.info("로그인 작업 완료 토큰 발행 시작");
-        TokenInfoResponse token = jwtProvider.createToken(getAuthentication(user), Provider.valueOf(provider.toUpperCase()));
-        log.info("토큰 발행 완료");
-        return create(OK.value(), "ok", token);
+                    log.info("로그인 작업 완료 토큰 발행 시작");
+                    TokenInfoResponse tokenInfoResponse = jwtProvider.createToken(getAuthentication(existingUser), Provider.valueOf(provider.toUpperCase()));
+                    log.info("토큰 발행 완료");
+                    return Mono.just(create(OK.value(), "ok", tokenInfoResponse));
+                })
+                .onErrorResume(error -> {
+                    // 에러 처리 로직을 넣으세요.
+                    throw new ClassCastException();
+                });
     }
+
+
 
     private User signUp(User userData) {
         log.info("회원가입 진행");

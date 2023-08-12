@@ -7,6 +7,7 @@ import code.kata.global.response.TokenInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @RestController
@@ -16,8 +17,8 @@ public class UserAuthController {
     private final UserAuthService userAuthService;
 
     @PostMapping("/signIn/{provider}")
-    public SuccessResponse<TokenInfoResponse> signIn(@PathVariable String provider, @RequestBody SignInRequest signInRequest) {
-        SuccessResponse<TokenInfoResponse> tokenInfoResponseSuccessResponse = userAuthService.signIn(signInRequest.getAccessToken(), provider);
+    public Mono<SuccessResponse<TokenInfoResponse>> signIn(@PathVariable String provider, @RequestBody SignInRequest signInRequest) {
+        Mono<SuccessResponse<TokenInfoResponse>> tokenInfoResponseSuccessResponse = userAuthService.signIn(signInRequest.getAccessToken(), provider);
         return tokenInfoResponseSuccessResponse;
     }
 }

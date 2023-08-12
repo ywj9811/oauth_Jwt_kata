@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -19,18 +20,17 @@ public class KakaoService implements Oauth2Service {
     private final OauthToUser oauthToUser;
 
     @Override
-    public User getUserData(String accessToken) {
+    public Mono<User> getUserData(String accessToken) {
         kakaoValid.valid(accessToken);
-
-        KakaoResponse kakaoResponse = webClient.get()
+        return webClient.get()
                 .uri("https://kapi.kakao.com/v2/user/me")
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
                 .retrieve()
                 .onStatus((HttpStatus) -> HttpStatus.ACCEPTED.is4xxClientError(), response -> Mono.error(new ClassCastException()))
-                .onStatus((HttpStatus) -> HttpStatus.ACCEPTED.is4xxClientError(), response -> Mono.error(new ClassCastException()))
+                //적절한 예외 처리
+                .onStatus((HttpStatus) -> HttpStatus.ACCEPTED.is5xxServerError(), response -> Mono.error(new ClassCastException()))
+                //적절한 예외 처리
                 .bodyToMono(KakaoResponse.class)
-                .block();
-
-        return oauthToUser.fromKakao(kakaoResponse);
+                .map(oauthToUser::fromKakao);
     }
 }
